@@ -33,6 +33,7 @@ const (
 	tagWebsocket    = "websocket"
 	tagMatrix       = "matrix"
 	tagWebPush      = "webpush"
+	tagHuaweiPush   = "huawei_push"
 )
 
 var (

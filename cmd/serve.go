@@ -109,6 +109,9 @@ var flagsServe = append(
 	altsrc.NewStringFlag(&cli.StringFlag{Name: "web-push-startup-queries", Aliases: []string{"web_push_startup_queries"}, EnvVars: []string{"NTFY_WEB_PUSH_STARTUP_QUERIES"}, Usage: "queries run when the web push database is initialized"}),
 	altsrc.NewStringFlag(&cli.StringFlag{Name: "web-push-expiry-duration", Aliases: []string{"web_push_expiry_duration"}, EnvVars: []string{"NTFY_WEB_PUSH_EXPIRY_DURATION"}, Value: util.FormatDuration(server.DefaultWebPushExpiryDuration), Usage: "automatically expire unused subscriptions after this time"}),
 	altsrc.NewStringFlag(&cli.StringFlag{Name: "web-push-expiry-warning-duration", Aliases: []string{"web_push_expiry_warning_duration"}, EnvVars: []string{"NTFY_WEB_PUSH_EXPIRY_WARNING_DURATION"}, Value: util.FormatDuration(server.DefaultWebPushExpiryWarningDuration), Usage: "send web push warning notification after this time before expiring unused subscriptions"}),
+	altsrc.NewStringFlag(&cli.StringFlag{Name: "huawei-push-project-id", Aliases: []string{"huawei_push_project_id"}, EnvVars: []string{"NTFY_HUAWEI_PUSH_PROJECT_ID"}, Usage: "Huawei Push Kit project ID from AppGallery Connect"}),
+	altsrc.NewStringFlag(&cli.StringFlag{Name: "huawei-push-client-id", Aliases: []string{"huawei_push_client_id"}, EnvVars: []string{"NTFY_HUAWEI_PUSH_CLIENT_ID"}, Usage: "Huawei Push Kit OAuth client ID"}),
+	altsrc.NewStringFlag(&cli.StringFlag{Name: "huawei-push-client-secret", Aliases: []string{"huawei_push_client_secret"}, EnvVars: []string{"NTFY_HUAWEI_PUSH_CLIENT_SECRET"}, Usage: "Huawei Push Kit OAuth client secret"}),
 )
 
 var cmdServe = &cli.Command{
@@ -152,6 +155,9 @@ func execServe(c *cli.Context) error {
 	webPushStartupQueries := c.String("web-push-startup-queries")
 	webPushExpiryDurationStr := c.String("web-push-expiry-duration")
 	webPushExpiryWarningDurationStr := c.String("web-push-expiry-warning-duration")
+	huaweiPushProjectID := c.String("huawei-push-project-id")
+	huaweiPushClientID := c.String("huawei-push-client-id")
+	huaweiPushClientSecret := c.String("huawei-push-client-secret")
 	cacheFile := c.String("cache-file")
 	cacheDurationStr := c.String("cache-duration")
 	cacheStartupQueries := c.String("cache-startup-queries")
@@ -346,6 +352,10 @@ func execServe(c *cli.Context) error {
 		return errors.New("cannot enable WebPush, support is not available in this build (nowebpush)")
 	} else if webPushExpiryWarningDuration > 0 && webPushExpiryWarningDuration > webPushExpiryDuration {
 		return errors.New("web push expiry warning duration cannot be higher than web push expiry duration")
+	} else if !server.HuaweiPushAvailable && (huaweiPushProjectID != "" || huaweiPushClientID != "" || huaweiPushClientSecret != "") {
+		return errors.New("cannot enable Huawei Push, support is not available in this build (nohuaweipush)")
+	} else if (huaweiPushProjectID != "" || huaweiPushClientID != "" || huaweiPushClientSecret != "") && (huaweiPushProjectID == "" || huaweiPushClientID == "" || huaweiPushClientSecret == "") {
+		return errors.New("if Huawei Push is enabled, huawei-push-project-id, huawei-push-client-id, and huawei-push-client-secret must all be set")
 	} else if behindProxy && proxyForwardedHeader == "" {
 		return errors.New("if behind-proxy is set, proxy-forwarded-header must also be set")
 	} else if visitorPrefixBitsIPv4 < 1 || visitorPrefixBitsIPv4 > 32 {
@@ -509,6 +519,9 @@ func execServe(c *cli.Context) error {
 	conf.WebPushStartupQueries = webPushStartupQueries
 	conf.WebPushExpiryDuration = webPushExpiryDuration
 	conf.WebPushExpiryWarningDuration = webPushExpiryWarningDuration
+	conf.HuaweiPushProjectID = huaweiPushProjectID
+	conf.HuaweiPushClientID = huaweiPushClientID
+	conf.HuaweiPushClientSecret = huaweiPushClientSecret
 	conf.BuildVersion = c.App.Version
 	conf.BuildDate = maybeFromMetadata(c.App.Metadata, MetadataKeyDate)
 	conf.BuildCommit = maybeFromMetadata(c.App.Metadata, MetadataKeyCommit)

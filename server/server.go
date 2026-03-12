@@ -34,6 +34,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
 	"heckel.io/ntfy/v2/db/pg"
+	"heckel.io/ntfy/v2/huaweipush"
 	"heckel.io/ntfy/v2/log"
 	"heckel.io/ntfy/v2/message"
 	"heckel.io/ntfy/v2/model"
@@ -59,6 +60,8 @@ type Server struct {
 	topics            map[string]*topic
 	visitors          map[string]*visitor // ip:<ip> or user:<user>
 	firebaseClient    *firebaseClient
+	huaweiPushClient  *huaweipush.Client                  // Huawei Push Kit V3 client, nil when disabled
+	huaweiPushStore   *huaweipush.Store                   // Database that stores Huawei push subscriptions, nil when disabled
 	messages          int64                               // Total number of messages (persisted if messageCache enabled)
 	messagesHistory   []int64                             // Last n values of the messages counter, used to determine rate
 	userManager       *user.Manager                       // Might be nil!
@@ -100,6 +103,7 @@ var (
 	apiConfigPath                                        = "/v1/config"
 	apiStatsPath                                         = "/v1/stats"
 	apiWebPushPath                                       = "/v1/webpush"
+	apiHuaweiPushPath                                    = "/v1/huaweipush"
 	apiTiersPath                                         = "/v1/tiers"
 	apiUsersPath                                         = "/v1/users"
 	apiUsersAccessPath                                   = "/v1/users/access"
@@ -258,13 +262,29 @@ func New(conf *Config) (*Server, error) {
 		}
 		firebaseClient = newFirebaseClient(sender, auther)
 	}
+	// Set up Huawei Push Kit client and store
+	var huaweiPushClient *huaweipush.Client
+	var huaweiPushStore *huaweipush.Store
+	if HuaweiPushAvailable && conf.HuaweiPushProjectID != "" && conf.HuaweiPushClientID != "" && conf.HuaweiPushClientSecret != "" {
+		huaweiPushClient = huaweipush.NewClient(conf.HuaweiPushProjectID, conf.HuaweiPushClientID, conf.HuaweiPushClientSecret)
+		if pool != nil {
+			huaweiPushStore, err = huaweipush.NewPostgresStore(pool)
+		} else {
+			huaweiPushStore, err = huaweipush.NewSQLiteStore(filepath.Join(filepath.Dir(conf.CacheFile), "huaweipush.db"))
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
 	s := &Server{
 		config:          conf,
 		db:              pool,
 		messageCache:    messageCache,
 		webPush:         wp,
 		fileCache:       fileCache,
-		firebaseClient:  firebaseClient,
+		firebaseClient:   firebaseClient,
+		huaweiPushClient: huaweiPushClient,
+		huaweiPushStore:  huaweiPushStore,
 		smtpSender:      mailer,
 		topics:          topics,
 		userManager:     userManager,
@@ -570,6 +590,10 @@ func (s *Server) handleInternal(w http.ResponseWriter, r *http.Request, v *visit
 		return s.ensureWebPushEnabled(s.limitRequests(s.handleWebPushUpdate))(w, r, v)
 	} else if r.Method == http.MethodDelete && apiWebPushPath == r.URL.Path {
 		return s.ensureWebPushEnabled(s.limitRequests(s.handleWebPushDelete))(w, r, v)
+	} else if r.Method == http.MethodPost && apiHuaweiPushPath == r.URL.Path {
+		return s.ensureHuaweiPushEnabled(s.limitRequests(s.handleHuaweiPushUpdate))(w, r, v)
+	} else if r.Method == http.MethodDelete && apiHuaweiPushPath == r.URL.Path {
+		return s.ensureHuaweiPushEnabled(s.limitRequests(s.handleHuaweiPushDelete))(w, r, v)
 	} else if r.Method == http.MethodGet && r.URL.Path == apiStatsPath {
 		return s.handleStats(w, r, v)
 	} else if r.Method == http.MethodGet && r.URL.Path == apiTiersPath {
@@ -902,6 +926,9 @@ func (s *Server) handlePublishInternal(r *http.Request, v *visitor) (*model.Mess
 		if s.config.WebPushPublicKey != "" {
 			go s.publishToWebPushEndpoints(v, m)
 		}
+		if s.huaweiPushClient != nil {
+			go s.sendToHuaweiPush(v, m)
+		}
 	} else {
 		logvrm(v, r, m).Tag(tagPublish).Debug("Message delayed, will process later")
 	}
@@ -1011,6 +1038,10 @@ func (s *Server) handleActionMessage(w http.ResponseWriter, r *http.Request, v *
 	// Send to web push endpoints
 	if s.config.WebPushPublicKey != "" {
 		go s.publishToWebPushEndpoints(v, m)
+	}
+	// Send to Huawei Push Kit endpoints
+	if s.huaweiPushClient != nil {
+		go s.sendToHuaweiPush(v, m)
 	}
 	if event == model.MessageDeleteEvent {
 		// Delete any existing scheduled message with the same sequence ID
@@ -2075,6 +2106,9 @@ func (s *Server) sendDelayedMessage(v *visitor, m *model.Message) error {
 	}
 	if s.config.WebPushPublicKey != "" {
 		go s.publishToWebPushEndpoints(v, m)
+	}
+	if s.huaweiPushClient != nil {
+		go s.sendToHuaweiPush(v, m)
 	}
 	if err := s.messageCache.MarkPublished(m); err != nil {
 		return err

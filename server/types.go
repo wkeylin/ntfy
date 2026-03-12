@@ -379,6 +379,11 @@ type apiWebPushUpdateSubscriptionRequest struct {
 	Topics   []string `json:"topics"`
 }
 
+type apiHuaweiPushUpdateRequest struct {
+	PushToken string   `json:"push_token"`
+	Topics    []string `json:"topics"`
+}
+
 // List of possible Web Push events (see sw.js)
 const (
 	webPushMessageEvent  = "message"

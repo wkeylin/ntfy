@@ -41,6 +41,11 @@ const (
 	DefaultWebPushExpiryDuration        = 60 * 24 * time.Hour
 )
 
+// Defines default Huawei Push settings
+const (
+	DefaultHuaweiPushExpiryDuration = 60 * 24 * time.Hour
+)
+
 // Defines all global and per-visitor limits
 // - message size limit: the max number of bytes for a message
 // - total topic limit: max number of topics overall
@@ -184,6 +189,10 @@ type Config struct {
 	WebPushStartupQueries                string
 	WebPushExpiryDuration                time.Duration
 	WebPushExpiryWarningDuration         time.Duration
+	HuaweiPushProjectID                  string
+	HuaweiPushClientID                   string
+	HuaweiPushClientSecret               string
+	HuaweiPushExpiryDuration             time.Duration
 	BuildVersion                         string // Injected by App
 	BuildDate                            string // Injected by App
 	BuildCommit                          string // Injected by App
@@ -241,6 +250,10 @@ func NewConfig() *Config {
 		TwilioVerifyBaseURL:                  "https://verify.twilio.com", // Override for tests
 		TwilioVerifyService:                  "",
 		TwilioCallFormat:                     nil,
+		HuaweiPushProjectID:                  "",
+		HuaweiPushClientID:                   "",
+		HuaweiPushClientSecret:               "",
+		HuaweiPushExpiryDuration:             DefaultHuaweiPushExpiryDuration,
 		MessageSizeLimit:                     DefaultMessageSizeLimit,
 		MessageDelayMin:                      DefaultMessageDelayMin,
 		MessageDelayMax:                      DefaultMessageDelayMax,

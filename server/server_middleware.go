@@ -67,6 +67,15 @@ func (s *Server) ensureWebPushEnabled(next handleFunc) handleFunc {
 	}
 }
 
+func (s *Server) ensureHuaweiPushEnabled(next handleFunc) handleFunc {
+	return func(w http.ResponseWriter, r *http.Request, v *visitor) error {
+		if s.huaweiPushClient == nil {
+			return errHTTPNotFound
+		}
+		return next(w, r, v)
+	}
+}
+
 func (s *Server) ensureUserManager(next handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, v *visitor) error {
 		if s.userManager == nil {

@@ -16,6 +16,7 @@ func (s *Server) execManager() {
 	s.pruneAttachments()
 	s.pruneMessages()
 	s.pruneAndNotifyWebPushSubscriptions()
+	s.pruneHuaweiPushSubscriptions()
 
 	// Message count
 	messagesCached, err := s.messageCache.MessagesCount()

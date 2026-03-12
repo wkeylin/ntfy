@@ -20,6 +20,8 @@ var (
 	metricUnifiedPushPublishedSuccess  prometheus.Counter
 	metricMatrixPublishedSuccess       prometheus.Counter
 	metricMatrixPublishedFailure       prometheus.Counter
+	metricHuaweiPushPublishedSuccess   prometheus.Counter
+	metricHuaweiPushPublishedFailure   prometheus.Counter
 	metricAttachmentsTotalSize         prometheus.Gauge
 	metricVisitors                     prometheus.Gauge
 	metricSubscribers                  prometheus.Gauge
@@ -74,6 +76,12 @@ func initMetrics() {
 	metricMatrixPublishedFailure = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "ntfy_matrix_published_failure",
 	})
+	metricHuaweiPushPublishedSuccess = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "ntfy_huawei_push_published_success",
+	})
+	metricHuaweiPushPublishedFailure = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "ntfy_huawei_push_published_failure",
+	})
 	metricAttachmentsTotalSize = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "ntfy_attachments_total_size",
 	})
@@ -108,6 +116,8 @@ func initMetrics() {
 		metricUnifiedPushPublishedSuccess,
 		metricMatrixPublishedSuccess,
 		metricMatrixPublishedFailure,
+		metricHuaweiPushPublishedSuccess,
+		metricHuaweiPushPublishedFailure,
 		metricAttachmentsTotalSize,
 		metricVisitors,
 		metricUsers,
