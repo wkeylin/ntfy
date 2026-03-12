@@ -52,8 +52,8 @@ func NewClientWithURL(projectID, clientID, clientSecret, tokenURL, pushURL strin
 }
 
 type huaweiPushRequest struct {
-	Payload json.RawMessage    `json:"payload"`
-	Target  huaweiPushTarget   `json:"target"`
+	Payload json.RawMessage  `json:"payload"`
+	Target  huaweiPushTarget `json:"target"`
 }
 
 type huaweiPushTarget struct {

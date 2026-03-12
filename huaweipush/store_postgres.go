@@ -28,7 +28,7 @@ const (
 		ON CONFLICT (push_token)
 		DO UPDATE SET project_id = excluded.project_id, topics = excluded.topics, updated_at = excluded.updated_at
 	`
-	postgresDeleteByTokenQuery = `DELETE FROM huawei_push_subscription WHERE push_token = $1`
+	postgresDeleteByTokenQuery  = `DELETE FROM huawei_push_subscription WHERE push_token = $1`
 	postgresSelectForTopicQuery = `
 		SELECT push_token FROM huawei_push_subscription
 		WHERE ',' || topics || ',' LIKE $1
@@ -36,7 +36,7 @@ const (
 		   OR topics LIKE $3
 		   OR topics = $4
 	`
-	postgresDeleteExpiredQuery    = `DELETE FROM huawei_push_subscription WHERE updated_at <= $1`
+	postgresDeleteExpiredQuery   = `DELETE FROM huawei_push_subscription WHERE updated_at <= $1`
 	postgresUpdateUpdatedAtQuery = `UPDATE huawei_push_subscription SET updated_at = $1 WHERE push_token = $2`
 )
 

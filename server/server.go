@@ -277,21 +277,21 @@ func New(conf *Config) (*Server, error) {
 		}
 	}
 	s := &Server{
-		config:          conf,
-		db:              pool,
-		messageCache:    messageCache,
-		webPush:         wp,
-		fileCache:       fileCache,
+		config:           conf,
+		db:               pool,
+		messageCache:     messageCache,
+		webPush:          wp,
+		fileCache:        fileCache,
 		firebaseClient:   firebaseClient,
 		huaweiPushClient: huaweiPushClient,
 		huaweiPushStore:  huaweiPushStore,
-		smtpSender:      mailer,
-		topics:          topics,
-		userManager:     userManager,
-		messages:        messages,
-		messagesHistory: []int64{messages},
-		visitors:        make(map[string]*visitor),
-		stripe:          stripe,
+		smtpSender:       mailer,
+		topics:           topics,
+		userManager:      userManager,
+		messages:         messages,
+		messagesHistory:  []int64{messages},
+		visitors:         make(map[string]*visitor),
+		stripe:           stripe,
 	}
 	s.priceCache = util.NewLookupCache(s.fetchStripePrices, conf.StripePriceCacheDuration)
 	return s, nil

@@ -30,7 +30,7 @@ const (
 		ON CONFLICT (push_token)
 		DO UPDATE SET project_id = excluded.project_id, topics = excluded.topics, updated_at = excluded.updated_at
 	`
-	sqliteDeleteByTokenQuery = `DELETE FROM huawei_push_subscription WHERE push_token = ?`
+	sqliteDeleteByTokenQuery  = `DELETE FROM huawei_push_subscription WHERE push_token = ?`
 	sqliteSelectForTopicQuery = `
 		SELECT push_token FROM huawei_push_subscription
 		WHERE ',' || topics || ',' LIKE ?
@@ -38,7 +38,7 @@ const (
 		   OR topics LIKE ?
 		   OR topics = ?
 	`
-	sqliteDeleteExpiredQuery    = `DELETE FROM huawei_push_subscription WHERE updated_at <= ?`
+	sqliteDeleteExpiredQuery   = `DELETE FROM huawei_push_subscription WHERE updated_at <= ?`
 	sqliteUpdateUpdatedAtQuery = `UPDATE huawei_push_subscription SET updated_at = ? WHERE push_token = ?`
 )
 
