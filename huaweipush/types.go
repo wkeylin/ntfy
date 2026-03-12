@@ -1,8 +1,5 @@
 package huaweipush
 
-// huaweiPushMessageLimit is the max payload size for Huawei Push Kit V3 messages.
-const huaweiPushMessageLimit = 4096
-
 // huaweiPushTokenBatchSize is the max number of tokens per push request.
 const huaweiPushTokenBatchSize = 1000
 
