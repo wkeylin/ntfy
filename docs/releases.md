@@ -6,11 +6,18 @@ and the [ntfy Android app](https://github.com/binwiederhier/ntfy-android/release
 
 | Component        | Version | Release date |
 |------------------|---------|--------------|
-| ntfy server      | v2.18.0 | Mar 7, 2026  |
+| ntfy server      | v2.18.1 | Mar 12, 2026 |
 | ntfy Android app | v1.24.0 | Mar 5, 2026  |
 | ntfy iOS app     | v1.3    | Nov 26, 2023 |
 
 Please check out the release notes for [upcoming releases](#not-released-yet) below.
+
+## ntfy server v2.18.1
+Released March 12, 2026
+
+**Features:**
+
+* Add Huawei Push Kit (HarmonyOS NEXT) support as a new push notification channel via `huawei-push-project-id`, `huawei-push-client-id`, and `huawei-push-client-secret` config options
 
 ## ntfy server v2.18.0
 Released March 7, 2026
